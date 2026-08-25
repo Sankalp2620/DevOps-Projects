@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  db:
+    image: ${DB_IMAGE:-sankalp2620/docker:db}
+    networks:
+      - db-network
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    volumes:
+      - db_data:/var/lib/mysql
+
+  frontend:
+    image: ${FRONTEND_IMAGE:-sankalp2620/docker:frontend}
+    ports:
+      - "${FRONTEND_PORT:-5000}:5000"
+    networks:
+      - frontend-network
+      - app-network
+    environment:
+      - AUTH_URL=http://auth_service:5001
+      - BOOK_URL=http://book_service:5002
+      - BORROW_URL=http://borrow_service:5003
+    deploy:
+      replicas: ${FRONTEND_REPLICAS:-3}
+      restart_policy:
+        condition: on-failure
+
+  auth_service:
+    image: ${AUTH_IMAGE:-sankalp2620/docker:auth}
+    networks:
+      - app-network
+      - db-network
+    environment:
+      - DB_HOST=db
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+    deploy:
+      replicas: ${SERVICE_REPLICAS:-3}
+      restart_policy:
+        condition: on-failure
+
+  book_service:
+    image: ${BOOK_IMAGE:-sankalp2620/docker:book}
+    networks:
+      - app-network
+      - db-network
+    environment:
+      - DB_HOST=db
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+    deploy:
+      replicas: ${SERVICE_REPLICAS:-3}
+      restart_policy:
+        condition: on-failure
+
+  borrow_service:
+    image: ${BORROW_IMAGE:-sankalp2620/docker:borrow}
+    networks:
+      - app-network
+      - db-network
+    environment:
+      - DB_HOST=db
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+    deploy:
+      replicas: ${SERVICE_REPLICAS:-3}
+      restart_policy:
+        condition: on-failure
+
+networks:
+  db-network:
+    driver: overlay
+  frontend-network:
+    driver: overlay
+  app-network:
+    driver: overlay
+
+volumes:
+  db_data:

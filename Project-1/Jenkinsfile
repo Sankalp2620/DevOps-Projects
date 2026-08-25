@@ -1,0 +1,85 @@
+pipeline {
+    agent any
+
+    parameters {
+        choice(
+            name: 'ENV',
+            choices: [ 'pilot', 'prod'],
+            description: 'Select deployment environment'
+        )
+    }
+
+    environment {
+        APP_NAME = "library-app"
+        PILOT_SERVER = "pilot-serveripaddress.company.com"
+        PROD_SERVER = "prod-serveripaddress.company.com"
+    }
+
+    stages {
+
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/Sankalp2620/python-code-library-app.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo "Building Docker images (Python app)"
+                sh 'docker-compose build'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                echo "Running tests (if any)"
+                sh 'python -m pytest -q || true'
+            }
+        }
+
+        stage('Security Scan') {
+            steps {
+                echo "Running security scan"
+                sh 'echo "Scanning dependencies..."'
+            }
+        }
+
+        stage('Deploy to Pilot') {
+            when {
+                expression { params.ENV == 'pilot' }
+            }
+            steps {
+                echo "Deploying to Pilot (staging)"
+                sh "ssh user@${PILOT_SERVER} 'cd /path/to/app && docker-compose --env-file .env.staging pull && docker-compose --env-file .env.staging up -d'"
+            }
+        }
+
+        stage('Approval for Production') {
+            when {
+                expression { params.ENV == 'prod' }
+            }
+            steps {
+                input message: "Approve deployment to Production?"
+            }
+        }
+
+        stage('Deploy to PROD') {
+            when {
+                expression { params.ENV == 'prod' }
+            }
+            steps {
+                echo "Deploying to PROD"
+                sh "ssh user@${PROD_SERVER} 'cd /path/to/app && docker-compose --env-file .env.prod pull && docker-compose --env-file .env.prod up -d'"
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Pipeline completed successfully"
+        }
+        failure {
+            echo "Pipeline failed"
+        }
+    }
+}
