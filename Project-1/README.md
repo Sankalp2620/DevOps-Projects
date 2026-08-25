@@ -47,7 +47,7 @@ flowchart LR
         Workers[Worker nodes]
         Manager -. schedules replicas .-> Workers
         Frontend[Frontend replicas\nPublished :5000]
-        Services[Backend replicas\nAuth :5001 | Books :5002 | Borrow :5003]
+      Services[Backend replicas\nAuth :5001, Books :5002, Borrow :5003]
         MySQL[(MySQL\nSingle replica :3306)]
         Volume[(db_data volume)]
         Workers --> Frontend
