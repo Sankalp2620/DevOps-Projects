@@ -11,7 +11,11 @@ module "resource_group" {
 }
 
 module "virtual_network" {
-  source = "../modules/Vnet"
-  resource_group_name = azurerm_resource_group.Rg-myphp_app.name
-  location=azurerm_resource_group.Rg-myphp_app.location
+  source              = "../modules/Vnet"
+  resource_group_name = module.resource_group.resource_group_name
+  location            = module.resource_group.resource_group_location
+  vnet_name           = var.vnet_name
+  address_space       = var.address_space
+  public_subnets      = var.public_subnets
+  private_subnets     = var.private_subnets
 }
