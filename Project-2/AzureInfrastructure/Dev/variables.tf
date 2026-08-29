@@ -37,3 +37,27 @@ variable "private_subnets" {
   description = "Names and address ranges for private subnets"
   type        = map(string)
 }
+
+variable "vm_admin_username" {
+  description = "Admin username for the Linux VMs"
+  type        = string
+  default     = "azureuser"
+}
+
+variable "vm_admin_password" {
+  description = "Admin password for the Linux VMs"
+  type        = string
+  sensitive   = true
+  default     = "Password1234!"
+}
+
+variable "vm_configs" {
+  description = "Configuration for VM placement and allowed ports"
+  type = map(object({
+    subnet_key = string
+    size       = string
+    public_ip  = bool
+    allow_ssh  = bool
+    allow_http = bool
+  }))
+}
