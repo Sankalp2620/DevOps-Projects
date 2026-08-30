@@ -16,6 +16,7 @@ variable "subnet_ids" {
 variable "vm_configs" {
   description = "Virtual machine definitions mapped by VM name"
   type = map(object({
+    enabled    = bool
     subnet_key = string
     size       = string
     public_ip  = bool

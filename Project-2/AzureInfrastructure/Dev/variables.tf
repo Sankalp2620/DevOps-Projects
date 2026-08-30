@@ -54,10 +54,21 @@ variable "vm_admin_password" {
 variable "vm_configs" {
   description = "Configuration for VM placement and allowed ports"
   type = map(object({
+    enabled    = bool
     subnet_key = string
     size       = string
     public_ip  = bool
     allow_ssh  = bool
     allow_http = bool
   }))
+}
+
+variable "natgateway_name" {
+  description = "Name of the NAT gateway"
+  type        = string
+}
+
+variable "application_gatway_name" {
+  description = "Name of the Application Gateway"
+  type        = string
 }

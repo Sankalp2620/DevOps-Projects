@@ -1,5 +1,5 @@
 resource "azurerm_public_ip" "vm_public_ip" {
-  for_each = { for name, cfg in var.vm_configs : name => cfg if cfg.public_ip }
+  for_each = { for name, cfg in var.vm_configs : name => cfg if cfg.enabled && cfg.public_ip }
 
   name                = "${each.key}-pip"
   location            = var.location
@@ -9,7 +9,7 @@ resource "azurerm_public_ip" "vm_public_ip" {
 }
 
 resource "azurerm_network_security_group" "vm_nsg" {
-  for_each = var.vm_configs
+  for_each = { for name, cfg in var.vm_configs : name => cfg if cfg.enabled }
 
   name                = "${each.key}-nsg"
   location            = var.location
@@ -47,8 +47,9 @@ resource "azurerm_network_security_group" "vm_nsg" {
 }
 
 resource "azurerm_network_interface" "vm_nic" {
-  for_each = var.vm_configs
-
+  for_each = { 
+    for name, cfg in var.vm_configs : name => cfg if cfg.enabled 
+  }
   name                = "${each.key}-nic"
   location            = var.location
   resource_group_name = var.resource_group_name
@@ -62,14 +63,18 @@ resource "azurerm_network_interface" "vm_nic" {
 }
 
 resource "azurerm_network_interface_security_group_association" "vm_nic_association" {
-  for_each = var.vm_configs
+  for_each = { 
+    for name, cfg in var.vm_configs : name => cfg if cfg.enabled 
+  }
 
   network_interface_id      = azurerm_network_interface.vm_nic[each.key].id
   network_security_group_id = azurerm_network_security_group.vm_nsg[each.key].id
 }
 
 resource "azurerm_linux_virtual_machine" "vm" {
-  for_each = var.vm_configs
+  for_each = { 
+    for name, cfg in var.vm_configs : name => cfg if cfg.enabled 
+  }
 
   name                            = each.key
   location                        = var.location
