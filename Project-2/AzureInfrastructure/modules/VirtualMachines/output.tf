@@ -24,6 +24,13 @@ output "public_ips" {
   }
 }
 
+output "public_ip_addresses" {
+  description = "Map of VM names to public IP addresses for public VMs"
+  value = {
+    for name, pip in azurerm_public_ip.vm_public_ip : name => pip.ip_address
+  }
+}
+
 output "private_ips" {
   description = "Map of VM names to private IP addresses"
   value = {

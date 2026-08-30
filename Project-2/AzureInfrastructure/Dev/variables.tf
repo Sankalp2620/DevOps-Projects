@@ -72,3 +72,33 @@ variable "application_gatway_name" {
   description = "Name of the Application Gateway"
   type        = string
 }
+
+variable database_server_name{
+  description = "database_server_name"
+  type = string
+}
+
+variable database_name {
+  description = "database_name"
+  type = string
+}
+
+variable administrator_login {
+  description = "administrator_login"
+  type = string
+}
+
+variable administrator_password {
+  description = "administrator_password"
+  type = string
+}
+
+variable mysql_subnet{
+  description= "mysql_subnet"
+  type=string
+}
+
+variable mysql_subnet_prefix{
+  description= "mysql_subnet_prefix"
+  type=string
+}
