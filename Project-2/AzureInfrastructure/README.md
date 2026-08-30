@@ -189,11 +189,13 @@ terraform destroy -auto-approve
 
 ```mermaid
 flowchart LR
-    User[Internet User] --> AppGW[Application Gateway<br/>Public IP<br/>public-subnet-2]
+    User[Internet User] --> PublicIP[Public IP<br/>attached to Application Gateway]
+    PublicIP --> AppGW[Application Gateway<br/>inside public-subnet-2<br/>within the VNet]
 
     subgraph AzureResourceGroup[Resource Group: rg-dev-environment]
         subgraph VNet[Virtual Network: MyphpApp<br/>10.0.0.0/16]
-            subgraph PublicSubnet[Public Subnet<br/>10.0.1.0/24]
+            subgraph PublicSubnet[Public Subnet<br/>10.0.2.0/24]
+                AppGW
                 PublicVM[public-web-vm<br/>Public IP<br/>SSH + HTTP]
             end
 
