@@ -209,26 +209,140 @@ flowchart LR
             subgraph MySQLSubnet[MySQL Subnet<br/>10.0.5.0/24]
                 MySQL[Azure Database for MySQL Flexible Server<br/>Private DNS + Private Link]
             end
+
+            subgraph ACRSubnet[Container Registry<br/>Azure Container Registry]
+                ACR[Azure Container Registry<br/>Private image repository]
+            end
         end
+
+        KeyVault[Azure Key Vault<br/>Secrets + RBAC access]
+        RoleAssignment[RBAC Role Assignments<br/>VM identity to Key Vault and ACR]
     end
 
     AppGW -->|HTTP/HTTPS| PrivateVM
     PublicVM -->|SSH| PrivateVM
     PrivateVM -->|Private DNS + VNet routing| MySQL
     NAT -->|Outbound internet access| PrivateSubnet1
+
+    PublicVM -->|Managed Identity + RBAC| ACR
+    PrivateVM -->|Managed Identity + RBAC| ACR
+    PublicVM -->|Managed Identity + RBAC| KeyVault
+    PrivateVM -->|Managed Identity + RBAC| KeyVault
+    RoleAssignment --> ACR
+    RoleAssignment --> KeyVault
 ```
 
 ### Architecture summary
 
+- Resource Group is the top-level Azure container for all resources.
+- Virtual Network and subnets are created first to provide the private/public segmentation.
 - Public VM is placed in the public subnet and has a public IP.
 - Private VM is placed in a private subnet and does not have a public IP.
 - Application Gateway sits in the public subnet and routes traffic to the private application VM.
 - NAT Gateway is attached to the private subnet for outbound internet access.
 - Azure Database for MySQL is created in a dedicated delegated subnet and accessed privately through VNet DNS.
+- Azure Container Registry stores container images and is accessed through RBAC-managed identities.
+- Azure Key Vault stores secrets, and both VMs receive RBAC permissions to fetch and list secret values.
+- Role assignments connect the VM managed identities to the ACR and Key Vault so they can access resources securely without hardcoded credentials.
 
 ---
 
-## 12. Recommended deployment flow
+## 12. Beginner-friendly resource creation flow
+
+Below is the order in which resources are typically created in this project so a beginner can understand the setup clearly.
+
+### Step 1: Create the Resource Group
+
+This is the logical container where all Azure infrastructure is stored.
+
+- Resource group is created first.
+- All later resources belong to this group.
+
+### Step 2: Create the Virtual Network and subnets
+
+The network is created next because the VMs, NAT gateway, App Gateway, and database need a network boundary.
+
+Resources created:
+
+- VNet
+- Public subnet
+- Private subnet
+- MySQL delegated subnet
+
+### Step 3: Create the Virtual Machines
+
+The VMs are created inside the defined subnets.
+
+Resources created:
+
+- Public IP (for public VM)
+- NSG rules for SSH/HTTP
+- NICs
+- Linux virtual machines
+- Managed identities for each VM
+
+### Step 4: Create the NAT Gateway
+
+NAT Gateway is attached to the private subnet to allow outbound internet connectivity for private resources.
+
+### Step 5: Create the Application Gateway
+
+This is placed in the public subnet and routes traffic to the private VM.
+
+Resources created:
+
+- Public IP for the gateway
+- Application Gateway
+- Listener and routing configuration
+- Backend pool pointing to the private VM
+
+### Step 6: Create the Azure Database for MySQL
+
+The database is deployed inside the MySQL subnet with private DNS support.
+
+Resources created:
+
+- MySQL subnet
+- Private DNS zone
+- VNet link
+- MySQL Flexible Server
+- Database instance
+
+### Step 7: Create the Azure Container Registry
+
+The registry is created to store Docker images for the application.
+
+Resources created:
+
+- Azure Container Registry
+
+### Step 8: Create the Azure Key Vault
+
+This stores secret values, certificates, and app configuration data.
+
+Resources created:
+
+- Azure Key Vault
+
+### Step 9: Create RBAC role assignments
+
+The VM managed identities are granted permissions to Key Vault and ACR.
+
+Resources created:
+
+- Role assignments for VM identities
+- Permissions such as ACR access and Key Vault access
+
+This makes the VMs able to:
+
+- pull container images from ACR
+- push images to ACR
+- fetch secrets from Key Vault
+- list secrets from Key Vault
+
+---
+
+## 13. Recommended deployment flow
 
 Use this sequence for each deployment:
 

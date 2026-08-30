@@ -65,6 +65,35 @@ module "database" {
   mysql_subnet_prefix    = var.mysql_subnet_prefix
 }
 
+module "container_Registry" {
+  source = "../modules/containerRegistry"
+  acr_name = var.acr_name
+  resource_group_name = module.resource_group.resource_group_name
+  location = module.resource_group.resource_group_location
+}
+
+module "vm_acr_role_assignment" {
+  source = "../modules/RoleAssignments"
+  scope = module.container_Registry.acr_id
+  role_definition_name = "Contributor"
+  principal_ids = module.virtual_machines.vm_identity_principal_ids
+}
+
+module "key_vault" {
+  source = "../modules/keyvault"
+  key_vault_name = var.key_vault_name
+  resource_group_name = module.resource_group.resource_group_name
+  location = module.resource_group.resource_group_location
+  tenant_id = var.tenant_id
+}
+
+module "vm_keyvault_role_assignment" {
+  source = "../modules/RoleAssignments"
+  scope = module.key_vault.key_vault_id
+  role_definition_name = "Key Vault Administrator"
+  principal_ids = module.virtual_machines.vm_identity_principal_ids
+}
+
 resource "local_file" "ansible_inventory" {
   filename = "${path.module}/../../Ansible/inventory.ini"
 

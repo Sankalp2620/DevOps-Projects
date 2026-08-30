@@ -102,3 +102,15 @@ variable mysql_subnet_prefix{
   description= "mysql_subnet_prefix"
   type=string
 }
+
+variable "acr_name" {
+  description = "Azure Container Registry name"
+  type        = string
+  default     = "myphpappacrdev01"
+}
+
+variable "key_vault_name" {
+  description = "Azure Key Vault name"
+  type        = string
+  default     = "myphpappkvdev01"
+}

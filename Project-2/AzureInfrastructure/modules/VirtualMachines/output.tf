@@ -24,6 +24,13 @@ output "public_ips" {
   }
 }
 
+output "vm_identity_principal_ids" {
+  description = "Map of VM names to their managed identity principal IDs"
+  value = {
+    for name, identity in azurerm_user_assigned_identity.vm_identity : name => identity.principal_id
+  }
+}
+
 output "public_ip_addresses" {
   description = "Map of VM names to public IP addresses for public VMs"
   value = {

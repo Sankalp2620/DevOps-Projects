@@ -1,3 +1,11 @@
+resource "azurerm_user_assigned_identity" "vm_identity" {
+  for_each = { for name, cfg in var.vm_configs : name => cfg if cfg.enabled }
+
+  name                = "${each.key}-identity"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+}
+
 resource "azurerm_public_ip" "vm_public_ip" {
   for_each = { for name, cfg in var.vm_configs : name => cfg if cfg.enabled && cfg.public_ip }
 
@@ -85,6 +93,11 @@ resource "azurerm_linux_virtual_machine" "vm" {
   disable_password_authentication = false
 
   network_interface_ids = [azurerm_network_interface.vm_nic[each.key].id]
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.vm_identity[each.key].id]
+  }
 
   os_disk {
     caching              = "ReadWrite"
